@@ -1,22 +1,26 @@
-diff -up tcl8.5.1/unix/configure.in.autopath tcl8.5.1/unix/configure.in
---- tcl8.5.1/unix/configure.in.autopath	2008-02-05 18:00:35.000000000 +0100
-+++ tcl8.5.1/unix/configure.in	2008-03-17 14:57:24.000000000 +0100
-@@ -795,9 +795,9 @@ if test "$FRAMEWORK_BUILD" = "1" ; then
-     test -z "$TCL_MODULE_PATH"  && \
- 	TCL_MODULE_PATH="~/Library/Tcl /Library/Tcl /Network/Library/Tcl /System/Library/Tcl"
- elif test "$prefix/lib" != "$libdir"; then
--    TCL_PACKAGE_PATH="${libdir} ${prefix}/lib ${TCL_PACKAGE_PATH}"
-+    TCL_PACKAGE_PATH="${libdir} ${libdir}/tcl8.5 ${prefix}/lib ${prefix}/lib/tcl8.5 ${prefix}/share/tcl8.5 ${TCL_PACKAGE_PATH}"
- else
--    TCL_PACKAGE_PATH="${prefix}/lib ${TCL_PACKAGE_PATH}"
-+    TCL_PACKAGE_PATH="${libdir} ${libdir}/tcl8.5 ${prefix}/share/tcl8.5 ${TCL_PACKAGE_PATH}"
- fi
+diff --git a/library/auto.tcl b/library/auto.tcl
+index 02edcc4..cd3b587 100644
+--- a/library/auto.tcl
++++ b/library/auto.tcl
+@@ -81,6 +81,13 @@ proc tcl_findLibrary {basename version patch initScript enVarName varName} {
+ 	    lappend dirs [::${basename}::pkgconfig get scriptdir,runtime]
+ 	}
  
- #--------------------------------------------------------------------
-diff -up tcl8.5.1/library/init.tcl.autopath tcl8.5.1/library/init.tcl
---- tcl8.5.1/library/init.tcl.autopath	2008-02-04 18:29:11.000000000 +0100
-+++ tcl8.5.1/library/init.tcl	2008-02-19 09:11:51.000000000 +0100
-@@ -48,16 +48,11 @@ if {![info exists auto_path]} {
++	# 2a. As a sibling of Tcl's script directory
++	if {[catch {
++	    ::tcl::pkgconfig get scriptdir,runtime
++	} value] == 0} {
++	    lappend dirs [file join [file dirname $value] $basename$version]
++	}
++
+ 	# 3. Relative to auto_path directories.  This checks relative to the
+ 	# Tcl library as well as allowing loading of libraries added to the
+ 	# auto_path that is not relative to the core library or binary paths.
+diff --git a/library/init.tcl b/library/init.tcl
+index 1ca6413..1aba664 100644
+--- a/library/init.tcl
++++ b/library/init.tcl
+@@ -47,16 +47,11 @@ if {![info exists auto_path]} {
  }
  namespace eval tcl {
      variable Dir
@@ -34,20 +38,19 @@ diff -up tcl8.5.1/library/init.tcl.autopath tcl8.5.1/library/init.tcl
      catch {
  	foreach Dir $::tcl_pkgPath {
  	    if {$Dir ni $::auto_path} {
-diff -up tcl8.5.1/library/auto.tcl.autopath tcl8.5.1/library/auto.tcl
---- tcl8.5.1/library/auto.tcl.autopath	2006-11-03 01:34:52.000000000 +0100
-+++ tcl8.5.1/library/auto.tcl	2008-02-19 09:11:51.000000000 +0100
-@@ -85,6 +85,13 @@ proc tcl_findLibrary {basename version p
- 	    lappend dirs $value
- 	}
+diff --git a/unix/configure.in b/unix/configure.in
+index 61ad30f..8b327c4 100755
+--- a/unix/configure.in
++++ b/unix/configure.in
+@@ -883,9 +883,9 @@ if test "$FRAMEWORK_BUILD" = "1" ; then
+     test -z "$TCL_MODULE_PATH"  && \
+ 	TCL_MODULE_PATH="~/Library/Tcl /Library/Tcl /System/Library/Tcl"
+ elif test "$prefix/lib" != "$libdir"; then
+-    TCL_PACKAGE_PATH="${libdir} ${prefix}/lib ${TCL_PACKAGE_PATH}"
++    TCL_PACKAGE_PATH="${libdir}/tcl8.6 ${prefix}/share/tcl8.6 ${libdir}/tk8.6 ${prefix}/share/tk8.6 ${TCL_PACKAGE_PATH}"
+ else
+-    TCL_PACKAGE_PATH="${prefix}/lib ${TCL_PACKAGE_PATH}"
++    TCL_PACKAGE_PATH="${libdir}/tcl8.6 ${prefix}/share/tcl8.6 ${libdir}/tk8.6 ${prefix}/share/tk8.6 ${TCL_PACKAGE_PATH}"
+ fi
  
-+        # 2a. As a sibling of Tcl's script directory
-+        if {[catch {
-+            ::tcl::pkgconfig get scriptdir,runtime
-+        } value] == 0} {
-+            lappend dirs [file join [file dirname $value] $basename$version]
-+        }
-+
- 	# 3. Relative to auto_path directories.  This checks relative to the
- 	# Tcl library as well as allowing loading of libraries added to the
- 	# auto_path that is not relative to the core library or binary paths.
+ #--------------------------------------------------------------------
